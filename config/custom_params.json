@@ -1,7 +1,7 @@
 {	"setup":{
 		"autopilot": {
 			"autopilot_build_params_0": {
-				"repo": "git@github.com:tiiuae/px4-firmware.git",
+				"repo": "git@github.com:aravindraja93/px4-firmware.git",
 				"name": "TII-Autopilot",
 				"version": "master",
 				"clone": 1,
@@ -14,7 +14,7 @@
 		"gazebo": {
 			"gazebo_models": {
 				"gazebo_repo_0":{
-					"repo": "git@github.com:rudislabs/tii_gazebo.git",
+					"repo": "git@github.com:aravindraja93/tii_gazebo.git",
 					"version": "fire_turtle",
 					"name": "tii_gazebo"
 				},
@@ -26,7 +26,7 @@
 			},
 			"gazebo_plugins": {
 				"gazebo_plugin_repo_0":{
-					"repo": "git@github.com:rudislabs/PX4-SITL_gazebo.git",
+					"repo": "git@github.com:aravindraja93/PX4-SITL_gazebo.git",
 					"version": "gps_attack",
 					"name": "tii_gazebo_plugins",
 					"workspace_relative_mavlink": "TII-Autopilot/mavlink/include/",
