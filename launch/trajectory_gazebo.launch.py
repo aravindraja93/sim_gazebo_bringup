@@ -17,7 +17,7 @@ import sys
 import subprocess
 
 # Set relative paths to real paths
-launch_path = os.path.realpath(__file__).replace("sim_gazebo.launch.py","")
+launch_path = os.path.realpath(__file__).replace("trajectory_gazebo.launch.py","")
 json_path = os.path.realpath(os.path.relpath(os.path.join(launch_path,"../config")))
 ros2_ws = os.path.realpath(os.path.relpath(os.path.join(launch_path,"../../..")))
 
@@ -49,7 +49,7 @@ if clean_start:
     os.system("rm -rf /tmp/px4*")
 
 # Open JSON configuration file
-with open('{:s}/gen_params.json'.format(json_path)) as json_file:
+with open('{:s}/trajectory_params.json'.format(json_path)) as json_file:
     json_params = json.load(json_file)
 
 # Setup related configs
@@ -75,18 +75,17 @@ if "verbose" in json_params:
 
 # Iterate through defined Gazebo model repos
 for repo in setup_gazebo["gazebo_models"]:
-    print(repo)
-    print("iiiiii")
     gazebo_repo = setup_gazebo["gazebo_models"][repo]
-    print(gazebo_repo["name"])
-    print("jjjjjj")
     gazebo_repo_path = '{:s}/{:s}'.format(ros2_ws, 
         gazebo_repo["name"])
 
     # Clone Gazebo model repo if not present
+    clone_cmd = 'git clone -b {:s} {:s} {:s}'.format(gazebo_repo["version"],gazebo_repo["repo"], gazebo_repo_path)
+    print(clone_cmd)
     if not os.path.isdir(gazebo_repo_path):
         clone_cmd = 'git clone -b {:s} {:s} {:s}'.format(
             gazebo_repo["version"],gazebo_repo["repo"], gazebo_repo_path)
+        print(clone_cmd)
         clone_cmd_popen=shlex.split(clone_cmd)
         clone_popen = subprocess.Popen(clone_cmd_popen, 
             stdout=subprocess.PIPE, text=True)
@@ -212,7 +211,6 @@ for build in setup_autopilot:
 
 # Iterate through defined gazebo_plugins repos
 for build in setup_gazebo["gazebo_plugins"]:
-    print(build)
     plugin_build = setup_gazebo["gazebo_plugins"][build]
     plugin_path = '{:s}/{:s}'.format(ros2_ws, 
         plugin_build["name"])
@@ -246,8 +244,6 @@ for build in setup_gazebo["gazebo_plugins"]:
 
         cmake_cmd = 'cmake .. -D_MAVLINK_INCLUDE_DIR={:s}'.format(
             plugin_mavlink_path)
-        print("Build Command")
-        print(cmake_cmd)
         cmake_cmd_popen=shlex.split(cmake_cmd)
         cmake_popen = subprocess.Popen(cmake_cmd_popen, stdout=subprocess.PIPE, 
             cwd=plugin_build_path, text=True)
@@ -261,8 +257,6 @@ for build in setup_gazebo["gazebo_plugins"]:
 
         make_cmd = 'make -j{:s} -l{:s}'.format(
             str(int(np.floor(os.cpu_count()*.75))), str(int(np.floor(os.cpu_count()*.75))))
-        print("Make Command")
-        print(make_cmd)
         make_cmd_popen=shlex.split(make_cmd)
         make_popen = subprocess.Popen(make_cmd_popen, stdout=subprocess.PIPE, 
             cwd=plugin_build_path, text=True)
@@ -381,7 +375,7 @@ if has_built_ros2_pkgs:
     os.system('/bin/bash {:s}'.format(src_ros2_ws))
     os.system("/bin/bash /opt/ros/foxy/setup.bash")
     print('''\n\n\nPLEASE RUN:\n 
-        source {:s}; source /opt/ros/foxy/setup.bash; ros2 launch sim_gazebo_bringup sim_gazebo.launch.py
+        source {:s}; source /opt/ros/foxy/setup.bash; ros2 launch sim_gazebo_bringup trajectory_gazebo.launch.py
         \n\n'''.format(src_ros2_ws))
     sys.exit()
 
@@ -408,14 +402,14 @@ if "connections" in setup_system:
 generate_world_params = world_params["generate_params"]
 if world_params["generate_world"]:
     generate_world_args=""
+    print("_______________________")
     for params in generate_world_params:
         generate_world_args += ' --{:s} "{:s}"'.format(params, 
             str(generate_world_params[params]))
-
     generate_world_cmd = 'python3 {:s}/{:s}/scripts/jinja_world_gen.py{:s}'.format(
         ros2_ws, world_params["gazebo_name"], generate_world_args
         ).replace("\n","").replace("    ","")
-    print("_____________________________")
+
     print(generate_world_cmd)
     if debug_verbose:
         print('\nGenerating world with: {:s}\n'.format(generate_world_cmd))

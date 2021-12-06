@@ -17,7 +17,7 @@ import sys
 import subprocess
 
 # Set relative paths to real paths
-launch_path = os.path.realpath(__file__).replace("sim_gazebo.launch.py","")
+launch_path = os.path.realpath(__file__).replace("custom_gazebo.launch.py","")
 json_path = os.path.realpath(os.path.relpath(os.path.join(launch_path,"../config")))
 ros2_ws = os.path.realpath(os.path.relpath(os.path.join(launch_path,"../../..")))
 
@@ -34,7 +34,7 @@ has_reset_ld_library_env=True
 has_reset_sitl_gazebo_path_env=False
 has_built_ros2_pkgs=False
 clean_start=True
-debug_verbose=False
+debug_verbose=True
 overide_gazebo=False
 
 # Clear /tmp output from previous runs
@@ -49,7 +49,7 @@ if clean_start:
     os.system("rm -rf /tmp/px4*")
 
 # Open JSON configuration file
-with open('{:s}/gen_params.json'.format(json_path)) as json_file:
+with open('{:s}/custom_params.json'.format(json_path)) as json_file:
     json_params = json.load(json_file)
 
 # Setup related configs
@@ -154,9 +154,11 @@ for build in setup_autopilot:
 
     # Build autopilot if not built or incorrect version built
     if (os.path.isdir(autopilot_path)) and (not os.path.isdir(autopilot_build_path)):
-        build_cmd = 'make clean && DONT_RUN=1 make {:s} {:s} {:s}'.format(
+        build_cmd = 'make clean && DONT_RUN=1 make {:s} {:s} {:s} {:s}'.format(
             autopilot_build["build_prefix"],autopilot_build["build_type"],
-            autopilot_build["build_postfix"])
+            autopilot_build["build_postfix"],"gazebo")
+        print("_____________________________*************************************")
+        print(build_cmd)
         build_cmd_popen=shlex.split(build_cmd)
         build_popen = subprocess.Popen(build_cmd_popen, stdout=subprocess.PIPE, 
             cwd=autopilot_path, text=True)
@@ -542,10 +544,13 @@ def generate_launch_description():
             generate_model_args += ' --{:s} "{:s}"'.format(
                 params, str(generate_model_params[params]))
 
+        
         # Model generation command using scripts/jinja_model_gen.py
         generate_model = ['python3 {:s}/{:s}/scripts/jinja_model_gen.py{:s}'.format(
             ros2_ws, models[model_params]["gazebo_name"], 
             generate_model_args).replace("\n","").replace("    ","")]
+
+        
 
         # Calculate spawn locations
         spawn_pose = models[model_params]["spawn_pose"]
@@ -630,6 +635,10 @@ def generate_launch_description():
             px4_cmd = '''{:s} eval \"\"{:s}/bin/px4\" 
                 -w {:s} \"{:s}/etc\" -s etc/init.d-posix/rcS -i {:d}\"; bash'''.format(
                     px4_env, px4_path, sitl_output_path, px4_path, instance)
+            
+            print("_____________________________________&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+            print(px4_cmd)
+            print("_____________________________________&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
 
             # Xterm command to name xterm window and run px4_cmd
             xterm_px4_cmd = ['''xterm -hold -T \"PX4 NSH {:s}\" 
